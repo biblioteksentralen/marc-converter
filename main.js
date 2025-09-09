@@ -68,6 +68,10 @@ function findMarcNodes(rootNode) {
     return [rootNode];
   }
 
+  if (rootNode.name === "collection") {
+    return rootNode.children("record").filter(Boolean) ?? [];
+  }
+
   const sruRecordsNode = rootNode.first("records");
   if (sruRecordsNode) {
     return (
