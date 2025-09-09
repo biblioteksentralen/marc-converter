@@ -1,6 +1,6 @@
 # MARC XML to Line MARC Converter
 
-Hastily put together single-file HTML UI for converting MARC XML records to line MARC format using the [@biblioteksentralen/marc](https://www.npmjs.com/package/@biblioteksentralen/marc) package together with [@biblioteksentralen/xml-utils](https://www.npmjs.com/package/@biblioteksentralen/xml-utils).
+Hastily put together vanilla JS + HTML UI for converting MARC XML records to line MARC format using the [@biblioteksentralen/marc](https://www.npmjs.com/package/@biblioteksentralen/marc) package together with [@biblioteksentralen/xml-utils](https://www.npmjs.com/package/@biblioteksentralen/xml-utils).
 
 URL: <https://biblioteksentralen.github.io/marc-converter/>
 

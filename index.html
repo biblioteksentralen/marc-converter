@@ -1,176 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convert MARC XML to line MARC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Convert MARC XML to line MARC</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 text-gray-900 min-h-screen">
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold text-center mb-4 text-slate-700">MARC XML → line MARC</h1>
-    <div class="max-w-6xl mx-auto bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
-      <div class="space-y-2">
-        <div>
-          <label for="marcXmlInput" class="block text-sm font-medium text-gray-700 mb-2">
-            MARC XML Record
-          </label>
-          <textarea id="marcXmlInput" name="marcXmlInput" rows="12"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-xs"
-            placeholder="Paste your MARC XML record here..."></textarea>
+  <body
+    class="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 text-gray-900 min-h-screen"
+  >
+    <div class="container mx-auto px-4 py-6">
+      <h1 class="text-3xl font-bold text-center mb-4 text-slate-700">
+        MARC XML → line MARC
+      </h1>
+      <div
+        class="max-w-6xl mx-auto bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6"
+      >
+        <div class="space-y-2">
+          <div>
+            <label
+              for="marcXmlInput"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              MARC XML Record
+            </label>
+            <textarea
+              id="marcXmlInput"
+              name="marcXmlInput"
+              rows="12"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-xs"
+              placeholder="Paste your MARC XML record here..."
+            ></textarea>
+          </div>
         </div>
-      </div>
 
-      <div id="output" class="mt-2 hidden">
-        <h3 class="text-lg font-medium text-gray-900 mb-3">Line MARC Output</h3>
-        <div class="flex justify-start space-x-6 mb-3">
-          <label class="flex items-center">
-            <input type="radio" name="highlighting" value="disabled" checked class="mr-2 text-green-600">
-            <span class="text-sm text-gray-700">Plain text</span>
-          </label>
-          <label class="flex items-center">
-            <input type="radio" name="highlighting" value="enabled" class="mr-2 text-green-600">
-            <span class="text-sm text-gray-700">Highlight subfields</span>
-          </label>
+        <div id="output" class="mt-2 hidden">
+          <h3 class="text-lg font-medium text-gray-900 mb-3">
+            Line MARC Output
+          </h3>
+          <div class="flex justify-start space-x-6 mb-3">
+            <label class="flex items-center">
+              <input
+                type="radio"
+                name="highlighting"
+                value="disabled"
+                checked
+                class="mr-2 text-green-600"
+              />
+              <span class="text-sm text-gray-700">Plain text</span>
+            </label>
+            <label class="flex items-center">
+              <input
+                type="radio"
+                name="highlighting"
+                value="enabled"
+                class="mr-2 text-green-600"
+              />
+              <span class="text-sm text-gray-700">Highlight subfields</span>
+            </label>
+          </div>
+          <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+            <pre
+              id="lineMarcOutput"
+              class="text-xs font-mono whitespace-pre-wrap text-gray-800"
+            ></pre>
+          </div>
         </div>
-        <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
-          <pre id="lineMarcOutput" class="text-xs font-mono whitespace-pre-wrap text-gray-800"></pre>
-        </div>
-      </div>
 
-      <div id="error" class="mt-4 hidden">
-        <div class="bg-red-50 border border-red-200 rounded-md p-4">
-          <p class="text-red-800 text-sm" id="errorMessage"></p>
+        <div id="error" class="mt-4 hidden">
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <p class="text-red-800 text-sm" id="errorMessage"></p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { parseMarcXml, serializeMarcXml, serializeLineMarc, MarcRecord } from 'https://cdn.jsdelivr.net/npm/@biblioteksentralen/marc@latest/+esm';
-    import { parseXml } from 'https://cdn.jsdelivr.net/npm/@biblioteksentralen/xml-utils@latest/+esm';
-
-    const xmlInput = document.getElementById('marcXmlInput');
-    const outputDiv = document.getElementById('output');
-    const lineMarcOutput = document.getElementById('lineMarcOutput');
-    const errorDiv = document.getElementById('error');
-    const errorMessage = document.getElementById('errorMessage');
-    const highlightingRadios = document.querySelectorAll('input[name="highlighting"]');
-
-    const outputData = {}
-
-    // Load saved highlighting preference from localStorage
-    function loadHighlightingPreference() {
-      const savedPreference = localStorage.getItem('marcHighlighting') || 'disabled';
-      const radioToCheck = document.querySelector(`input[name="highlighting"][value="${savedPreference}"]`);
-      if (radioToCheck) {
-        radioToCheck.checked = true;
-      }
-    }
-
-    // Save highlighting preference to localStorage
-    function saveHighlightingPreference(value) {
-      localStorage.setItem('marcHighlighting', value);
-    }
-
-    function hideMessages() {
-      outputDiv.classList.add('hidden');
-      errorDiv.classList.add('hidden');
-    }
-
-    function showError(message) {
-      hideMessages();
-      errorMessage.textContent = message;
-      errorDiv.classList.remove('hidden');
-    }
-
-    function showOutput() {
-      hideMessages();
-      const highlightingEnabled = document.querySelector('input[name="highlighting"]:checked').value === 'enabled';
-
-      if (highlightingEnabled) {
-        lineMarcOutput.innerHTML = outputData.highlightedText;
-      } else {
-        lineMarcOutput.textContent = outputData.plainText;
-      }
-
-      outputDiv.classList.remove('hidden');
-    }
-
-    async function convertRecordToLineMarc(recordElement) {
-      const [marcRecord] = await parseMarcXml(recordElement);
-      return await serializeLineMarc(marcRecord);
-    }
-
-    let debounceTimer;
-    async function handleInputChange() {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(async () => {
-        const xmlText = xmlInput.value.trim();
-
-        if (!xmlText) {
-          hideMessages();
-          return;
-        }
-
-        try {
-          const rootNode = await parseXml(xmlText);
-          let lineMarcResults = [];
-
-          const recordsNode = rootNode.first('records');
-
-          // Case 1: MARC records inside OAI-PMH envelope
-          if (recordsNode) {
-            for (const recordNode of recordsNode.children('record')) {
-              const recordData = recordNode.first("recordData");
-              const marcRecordNode = recordData.first("record");
-              if (!marcRecordNode) {
-                throw new Error('Invalid record structure, record not found in OAI-PMH envelope');
-              }
-              const lineMarcText = await convertRecordToLineMarc(marcRecordNode);
-              lineMarcResults.push(lineMarcText);
-            }
-
-          // Case 2: Single MARC record
-          } else if (rootNode.name === 'record') {
-            const lineMarcText = await convertRecordToLineMarc(rootNode);
-            lineMarcResults.push(lineMarcText);
-          
-          // Case 3: No valid MARC record found
-          } else {
-            throw new Error('No MARC record found in the XML');
-          }
-
-          const combinedOutput = lineMarcResults.join('\n\n');
-          const highlightedText = combinedOutput.replace(/(\$[a-zA-Z0-9])/g, ' <span class="text-green-600">$1</span> ');
-
-          outputData.plainText = combinedOutput;
-          outputData.highlightedText = highlightedText;
-          showOutput();
-
-        } catch (error) {
-          console.error('Conversion error:', error);
-          showError(`Error converting MARC record: ${error.message}`);
-        }
-      }, 300);
-    }
-
-    loadHighlightingPreference();
-
-    xmlInput.addEventListener('input', handleInputChange);
-    xmlInput.addEventListener('paste', handleInputChange);
-
-    highlightingRadios.forEach(radio => {
-      radio.addEventListener('change', function () {
-        saveHighlightingPreference(this.value);
-        if (!outputDiv.classList.contains('hidden')) {
-          showOutput();
-        }
-      });
-    });
-  </script>
-</body>
-
+    <script type="module" src="main.js"></script>
+  </body>
 </html>
