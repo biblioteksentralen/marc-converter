@@ -120,7 +120,8 @@
           let lineMarcResults = [];
 
           const recordsNode = rootNode.first('records');
-          console.log("Root note:", rootNode.name)
+
+          // Case 1: MARC records inside OAI-PMH envelope
           if (recordsNode) {
             for (const recordNode of recordsNode.children('record')) {
               const recordData = recordNode.first("recordData");
@@ -131,9 +132,13 @@
               const lineMarcText = await convertRecordToLineMarc(marcRecordNode);
               lineMarcResults.push(lineMarcText);
             }
+
+          // Case 2: Single MARC record
           } else if (rootNode.name === 'record') {
             const lineMarcText = await convertRecordToLineMarc(rootNode);
             lineMarcResults.push(lineMarcText);
+          
+          // Case 3: No valid MARC record found
           } else {
             throw new Error('No MARC record found in the XML');
           }
@@ -152,10 +157,8 @@
       }, 300);
     }
 
-    // Load saved preference on page load
     loadHighlightingPreference();
 
-    // Add input event listener for auto-conversion
     xmlInput.addEventListener('input', handleInputChange);
     xmlInput.addEventListener('paste', handleInputChange);
 
