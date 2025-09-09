@@ -13,7 +13,8 @@ URL: <https://biblioteksentralen.github.io/marc-converter/>
 ### Supported Input Formats
 
 - **Single MARC record**: Direct `<record>` element
-- **OAI-PMH envelope**: Multiple records wrapped in `<records>` element with `<recordData>` structure
+- **OAI-PMH or SRU envelope**: One or more records wrapped in `<records>`, `<ListRecords>` or
+  `<GetRecord>`.
 
 ## Development
 
